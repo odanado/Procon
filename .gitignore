@@ -1,0 +1,20 @@
+
+# すべてのファイルを無視
+/*
+
+# 適当に許可
+!AOJ/
+!AtCoder
+!Codeforces
+!SRM
+!POJ
+!.gitignore
+
+*.exe
+*.out
+*.stackdump
+
+tmp
+*.txt
+.DS_Store
+
