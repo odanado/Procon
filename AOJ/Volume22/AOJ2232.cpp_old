@@ -1,0 +1,139 @@
+#include <algorithm>
+#include <functional>
+#include <cmath>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <string>
+#include <sstream>
+#include <iostream>
+#include <iomanip>
+#include <vector>
+#include <list>
+#include <stack>
+#include <queue>
+#include <map>
+#include <set>
+#include <bitset>
+#include <climits>
+
+#define all(c) (c).begin(), (c).end()
+#define rep(i,n) for(int i=0;i<(n);i++)
+#define pb(e) push_back(e)
+#define mp(a, b) make_pair(a, b)
+#define fr first
+#define sc second
+
+const int INF=100000000;
+int dx[4]={1,0,-1,0};
+int dy[4]={0,1,0,-1};
+using namespace std;
+typedef pair<int ,int > P;
+typedef long long ll;
+
+int h,w,n;
+vector<string> blocks;
+bool is_del[33][33];
+void plot() {
+    rep(y,h) {
+        rep(x,w) {
+            cout<<blocks[y][x];
+        }
+        cout<<endl;
+    }
+    cout<<endl;
+}
+
+bool dfs(int y,int x,int d,char color,int cnt) {
+    if(!(0<=y&&y<h)) return cnt >= n;
+    if(!(0<=x&&x<w)) return cnt >= n;
+    if(blocks[y][x] != color) return cnt>=n;
+
+
+    return is_del[y][x] |= dfs(y+dy[d],x+dx[d],d,color,cnt+1);
+}
+void init() {
+    rep(i,33) rep(j,33) is_del[i][j]=false;
+}
+void erase() {
+    rep(y,h) rep(x,w) {
+        if(blocks[y][x] != '.') {
+            dfs(y,x,0,blocks[y][x],0);
+            dfs(y,x,1,blocks[y][x],0);
+        }
+    }
+    rep(y,h) {
+        rep(x,w) {
+            if(is_del[y][x]) {
+               if(y==0||blocks[y-1][x]=='.') 
+                   blocks[y][x]='.';
+            }
+        }
+    }
+    init();
+
+}
+bool fall() {
+    bool res=false;
+    for(int y=h-1;y>=0;y--) rep(x,w) {
+        if(blocks[y][x]!='.') {
+            int tmp=y;
+            while((tmp+1)<h && blocks[tmp+1][x]=='.') {
+                res = true;
+                blocks[tmp+1][x] = blocks[tmp][x];
+                blocks[tmp][x]='.';
+                tmp++;
+            }
+        }
+    }
+    return res;
+}
+bool ok() {
+    bool res = true;
+    rep(y,h) rep(x,w) {
+        res &= blocks[y][x]=='.';
+    }
+    return res;
+}
+void func() {
+    erase();
+    while(fall()) {
+        erase();
+        fall();
+    }
+}
+int main() {
+    cin>>h>>w>>n;
+    blocks.resize(h);
+    rep(i,h) cin>>blocks[i];
+
+    /*
+    cout<<endl;
+
+    rep(i,200) {
+        erase();
+        fall();
+    }
+    plot();
+    return 0;
+    */
+    bool ans = false;
+    rep(y,h) rep(x,w-1) {
+        vector<string> tmp = blocks;
+        swap(blocks[y][x],blocks[y][x+1]);
+        plot();
+        // printf("%d %d <-> %d %d\n",y,x,ny,nx);
+
+        func();
+
+        plot();
+        cout<<"------------------------------"<<endl;
+        ans |= ok();
+        blocks = tmp;
+    }
+    if(ans) cout<<"YES"<<endl;
+    else cout<<"NO"<<endl;
+
+    return 0;
+}
+

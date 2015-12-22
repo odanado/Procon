@@ -1,0 +1,101 @@
+#include <algorithm>
+#include <functional>
+#include <cmath>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <string>
+#include <sstream>
+#include <iostream>
+#include <iomanip>
+#include <vector>
+#include <list>
+#include <stack>
+#include <queue>
+#include <map>
+#include <set>
+#include <bitset>
+#include <climits>
+
+#define all(c) (c).begin(), (c).end()
+#define rep(i,n) for(int i=0;i<(n);i++)
+#define pb(e) push_back(e)
+#define mp(a, b) make_pair(a, b)
+#define fr first
+#define sc second
+
+const int INF=100000000;
+int dx[4]={1,0,-1,0};
+int dy[4]={0,1,0,-1};
+using namespace std;
+typedef pair<int ,int > P;
+typedef long long ll;
+
+struct LCA {
+    int root;
+    vector<vector<int>> parent;
+};
+
+const int MAX_V=100005;
+const int MAX_LOG_V=20;
+int N;
+vector<int> G[MAX_V];
+int root;
+int parent[MAX_LOG_V][MAX_V];
+int depth[MAX_V];
+void dfs(int v,int p,int d) {
+    parent[0][v]=p;
+    depth[v]=d;
+    rep(i,G[v].size()) {
+        if(G[v][i]!=p) dfs(G[v][i],v,d+1);
+    }
+}
+void init(int V) {
+    dfs(root,-1,0);
+    rep(k,MAX_LOG_V-1) {
+        rep(v,V) {
+            if(parent[k][v]<0) parent[k+1][v]=-1;
+            else parent[k+1][v]=parent[k][parent[k][v]];
+        }
+    }
+}
+
+int lca(int u,int v) {
+    if(depth[u]>depth[v]) swap(u,v);
+    rep(k,MAX_LOG_V) {
+        if((depth[v]-depth[u])>>k&1) {
+            v=parent[k][v];
+        }
+    }
+    if(v==u) return u;
+
+    for(int k=MAX_LOG_V-1;k>=0;k--) {
+        if(parent[k][u]!=parent[k][v]) {
+            u=parent[k][u];
+            v=parent[k][v];
+        }
+    }
+    return parent[0][u];
+}
+int main() {
+    cin>>N;
+    rep(i,N-1) {
+        int x,y;
+        cin>>x>>y; x--,y--;
+        G[x].pb(y);
+        G[y].pb(x);
+    }
+    init(N);
+    int Q;cin>>Q;
+    while(Q-->0) {
+        int a,b;
+        cin>>a>>b; a--,b--;
+        int v=lca(a,b);
+        int ans=depth[a]-depth[v];
+        ans+=depth[b]-depth[v];
+        ans+=1;
+        cout<<ans<<endl;
+    }
+    return 0;
+}
+
