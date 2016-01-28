@@ -31,12 +31,25 @@ using namespace std;
 typedef pair<int ,int > P;
 typedef long long ll;
 
+int N;
+int A[100005];
 int main() {
-    int n,x;
-    cin>>n>>x;
-    int ans=x*540;
-    ans+=(n-x)*525;
-    cout<<ans<<endl;
+    vector<int> ans;
+    cin>>N;
+    rep(i,N-1) cin>>A[i];
+    ans.pb(A[0]);
+    rep(i,N-1) {
+        //printf("debug: %d %d %d\n",i,A[i],ans.back());
+        if(ans.back()<=A[i]) {
+            ans.pb(A[i]);
+        }
+        else {
+            ans.back()=A[i];
+            ans.pb(A[i]);
+        }
+    }
+    rep(i,ans.size()) cout<<ans[i]<<" ";
+    cout<<endl;
     return 0;
 }
 
