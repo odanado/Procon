@@ -31,48 +31,68 @@ using namespace std;
 typedef pair<int ,int > P;
 typedef long long ll;
 
+template<typename T>
+class UnionFind {
+    int size_;
+    std::vector<T> par;
+    std::vector<T> rank;
+
+public:
+    UnionFind(int size_) : size_(size_) {
+        par.resize(size_);
+        rank.resize(size_);
+
+        for(int i=0; i<size_; i++) {
+            par[i]  = i;
+            rank[i] = 0;
+        }
+    }
+
+    T find(T x) {
+        return par[x] == x ? x : par[x] = find(par[x]);
+    }
+    void unite(T x,T y) {
+        x = find(x);
+        y = find(y);
+        if(x == y) return;
+
+        if(rank[x] < rank[y]) {
+            par[x] = y;
+        }
+        else {
+            par[y] = x;
+            if(rank[x] == rank[y]) rank[x]++;
+        }
+    }
+    bool same(T x, T y) {
+        return find(x) == find(y);
+    }
+};
+
 int N,M;
 vector<int> G[20];
 vector<int> S;
-struct State {
-    int v;
-    int s;
-    int cnt;
-    State(int v=0,int s=0,int cnt=0):
-        v(v),s(s),cnt(cnt){}
-};
-ll f(int v,int cnt) {
-    cout<<"f: "<<v<<", "<<cnt<<endl;
-    ll ret=0;
-    queue<State> que;
-    que.push(State(v,1<<v,cnt));
-    while(que.size()) {
-        State s=que.front(); que.pop();
-        printf("[debug]: %d %d %d\n",s.v,s.s,s.cnt);
-        if(s.s+1==(1<<N)) {
-            ret++;
-        }
-        for(auto u : G[s.v]) {
-            int t=S[s.cnt];
-            if((t>>u&1)) continue;
-            if(s.s>>u&1) continue;
-            que.push(State(u,s.s|1<<u,s.cnt^1));
+
+bool ok() {
+    UnionFind<int> uf(N);
+    rep(k,2) {
+        rep(v,N) if(S[k]>>v&1) {
+            for(auto u:G[v]) {
+                if(S[k]>>u&1) continue;
+                uf.unite(v,u);
+            }
         }
     }
-    cout<<"ret: "<<ret<<endl;
-    return ret;
-}
-ll dfs(int v,int cnt,int s) {
-    if(1<<N==s+1) return 1;
-    ll ret=0;
-    for(auto u:G[v]) {
-        if(S[cnt]>>u&1) continue;
-        if(s>>u&1) continue;
-        ret+=dfs(u,cnt^1,s|1<<u);
+    bool ret=true;
+    rep(k,2) {
+        rep(v,N) rep(u,N) if(v!=u&&(S[k]>>v&1)&&(S[k]>>u&1)) {
+            ret&=uf.same(u,v);
+        }
     }
 
     return ret;
 }
+
 int main() {
     cin>>N>>M;
     rep(i,M) {
@@ -89,28 +109,9 @@ int main() {
         S.clear();
         S.pb(S1);
         S.pb(S2);
-        ll cnt=0;
-        rep(i,N) {
-            cnt=max(cnt,dfs(i,S2>>i&1,1<<i));
+        if(ok()) {
+            ans++;
         }
-        if(cnt>0) {
-            //rep(i,N) if(S1>>i&1) cout<<i<<" ";
-            //cout<<endl;
-            //rep(i,N) if(S2>>i&1) cout<<i<<" ";
-            //cout<<endl;
-            //cout<<cnt<<endl;
-            //cout<<endl;
-        }
-
-        ans+=cnt;
-        /*
-        rep(i,N) {
-            cnt+=f(i,!(S1>>i&1));
-            //cout<<"m: "<<i<<", "<<cnt<<endl;
-            //if(cnt==1) return 0;
-        }
-        ans+=cnt;
-        */
     }
     cout<<ans/2<<endl;
     return 0;
