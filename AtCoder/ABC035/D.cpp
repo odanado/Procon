@@ -14,71 +14,97 @@ using namespace std;
 using ll = long long;
 
 #define all(c) (c).begin(), (c).end()
-#define rep(i,n) for(int i=0;i<(int)(n);i++)
+#define rep(i, n) for (int i = 0; i < (int)(n); i++)
 #define pb(e) push_back(e)
 #define mp(a, b) make_pair(a, b)
 #define fr first
 #define sc second
 
-const ll INF=1e18;
-const ll MOD=1e9+7;
-int dx[4]={1,0,-1,0};
-int dy[4]={0,1,0,-1};
-using P=pair<int,int>;
+const ll INF = 1e18;
+const ll MOD = 1e9 + 7;
+int dx[4] = {1, 0, -1, 0};
+int dy[4] = {0, 1, 0, -1};
+using P = pair<int, int>;
+template <class T>
+bool chmin(T &a, const T &b) {
+    if (a > b) {
+        a = b;
+        return true;
+    }
+    return false;
+}
+using Weight = ll;
 struct Edge {
     int to;
-    ll cost;
-    Edge(int to,int cost) :
-        to(to),cost(cost){}
+    Weight cost;
 };
-void dijk(vector<Edge> *G, ll *d) {
-    rep(i,100005) d[i]=INF;
+struct Node {
+    int v;
+    Node(int v) : v(v) {}
+    bool operator<(const Node &rhs) const { return tie(v) < tie(rhs.v); }
+};
+struct State : public Node {
+    Weight cost;
+    State(Node node, Weight cost) : Node(node), cost(cost) {}
+    bool operator<(const State &rhs) const { return cost > rhs.cost; }
+};
 
-    d[0]=0;
-    priority_queue<P,vector<P>,greater<P>> que;
-    que.push(P(0,0));
-    while(que.size()) {
-        P p=que.top(); que.pop();
-        int v=p.second;
-        for(auto e:G[v]) {
-            if(d[e.to]>d[v]+e.cost) {
-                d[e.to]=d[v]+e.cost;
-                que.push(P(d[e.to],e.to));
+map<Node, Weight> dijkstra(const vector<vector<Edge>> &adj, const Node &source) {
+    map<Node, Weight> dist;
+    priority_queue<State> que;
+
+    que.push(State(source, 0));
+    dist[source] = 0;
+
+    while (que.size()) {
+        State s = que.top();
+        que.pop();
+        Node cur{s.v};
+
+        for (auto u : adj[s.v]) {
+            Node next{u.to};
+            if (!dist.count(next) || dist[next] > dist[cur] + u.cost) {
+                dist[next] = dist[cur] + u.cost;
+                que.push(State(next, dist[next]));
             }
         }
     }
-}
-int N,M,T;
-int A[100005];
-vector<Edge> G[100005];
-vector<Edge> rG[100005];
 
-ll d[100005];
-ll rd[100005];
+    return dist;
+}
+int N, M, T;
+int A[100005];
+
+ll ans;
 
 int main() {
-    rep(i,100005) d[i]=rd[i]=INF;
-    cin>>N>>M>>T;
-    rep(i,N) cin>>A[i];
+    vector<vector<Edge>> adj, radj;
+    cin >> N >> M >> T;
+    rep(i, N) cin >> A[i];
+    adj.resize(N);
+    radj.resize(N);
 
-    rep(i,M) {
-        int a,b,c;
-        cin>>a>>b>>c;
-        a--,b--;
-        G[a].push_back(Edge(b,c));
-        rG[b].push_back(Edge(a,c));
+    rep(i, M) {
+        int a, b, c;
+        cin >> a >> b >> c;
+        a--, b--;
+        adj[a].push_back(Edge{b, c});
+        radj[b].push_back(Edge{a, c});
     }
-    dijk(G,d);
-    dijk(rG,rd);
-    ll ans=0;
-    rep(i,N) {
-        ll diff=T-d[i]-rd[i];
-        //cout<<d[0][i]<<" + "<<d[i][0]<<": "<<diff<<endl;
-        if(diff<0) continue;
-        ans=max(ans,diff*A[i]);
+
+    auto dist = dijkstra(adj, Node(0));
+    auto rdist = dijkstra(radj, Node(0));
+
+    rep(i, N) {
+        Node node{i};
+        //cout<<i<<": "<<dist[node]<<", "<<rdist[node]<<endl;
+        if(!dist.count(node)) continue;
+        if(!rdist.count(node)) continue;
+        ll diff = T - dist[node] - rdist[node];
+        if (diff < 0) continue;
+        ans = max(ans, A[i] * diff);
     }
-    cout<<ans<<endl;
+    cout << ans << endl;
 
     return 0;
 }
-
