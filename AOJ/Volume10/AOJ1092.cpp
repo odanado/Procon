@@ -29,20 +29,25 @@ int dy[4] = {0, 1, 0, -1};
 using P = pair<int, int>;
 int s, d, m;
 int f[101];
-int dp1[102][302];
+P dp1[102][302];
 int cost[102][302];
-int dfs1(int idx, int p) {
+P dfs1(int idx, int p) {
     // printf("%d %d\n", idx, p);
-    if (idx == d) return 0;
-    if (dp1[idx][p] != -INF) return dp1[idx][p];
-    int res = 0;
+    if (idx == d) return P(0, 0);
+    if (dp1[idx][p] != P(-INF, -INF)) return dp1[idx][p];
+    auto res = P(0, 0);
 
-    rep(i, p + 1) { res = max(res, dfs1(idx + 1, p - i) + cost[f[idx]][i]); }
+    rep(i, p + 1) {
+        auto t = dfs1(idx + 1, p - i);
+        t.first += cost[f[idx]][i];
+        t.second -= i;
+        res = max(res, t);
+    }
     return dp1[idx][p] = res;
 }
 int main() {
     while (cin >> s >> d >> m && s) {
-        rep(i, 102) rep(j, 302) dp1[i][j] = -INF;
+        rep(i, 102) rep(j, 302) dp1[i][j] = P(-INF, -INF);
         rep(i, 102) rep(j, 302) cost[i][j] = 0;
         rep(i, s) {
             int k;
@@ -59,15 +64,8 @@ int main() {
             }
         }
         rep(i, d) cin >> f[i];
-        int ans1 = dfs1(0, m);
-        int ans2 = 0;
-
-        rep(i, m + 1) {
-            if (ans1 == dfs1(0, i)) {
-                cout << ans1 << " " << i << endl;
-                break;
-            }
-        }
+        auto ans1 = dfs1(0, m);
+        cout << ans1.first << " " << -ans1.second << endl;
     }
     return 0;
 }
