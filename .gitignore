@@ -11,6 +11,8 @@
 !yukicoder
 !JAG
 !.gitignore
+!CodeFestival
+!KUPC
 
 *.exe
 *.out
